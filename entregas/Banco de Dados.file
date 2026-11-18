@@ -1,0 +1,127 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `saep_db` DEFAULT CHARACTER SET utf8mb3 ;
+USE `saep_db` ;
+--------------------------------------------------------
+-- Table `mydb`.`responsável`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `saep_db`.`responsável` (
+  `id_Responsavel` INT NOT NULL,
+  `Nome` VARCHAR(100) NOT NULL,
+  `CPF` VARBINARY(30) NOT NULL UNIQUE,
+  `e-mail` VARCHAR(100) NOT NULL,
+  `Telefone` VARCHAR(20) NOT NULL,
+  PRIMARY KEY (`id_Responsavel`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+CREATE UNIQUE INDEX `CPF_UNIQUE` ON `saep_db`.`responsável` (`CPF` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `e-mail_UNIQUE` ON `saep_db`.`responsável` (`e-mail` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `Telefone_UNIQUE` ON `saep_db`.`responsável` (`Telefone` ASC) VISIBLE;
+-- -----------------------------------------------------
+-- Table `mydb`.`filho`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `saep_db`.`filho` (
+  `id_Filho` INT NOT NULL,
+  `Nome` VARCHAR(100) NOT NULL,
+  `Data_Nascimento` DATE NOT NULL,
+  `Nivel_Natacao` ENUM('Iniciante', 'Intermediário', 'Avançado') NOT NULL,
+  `Responsável_id_Responsavel` INT NOT NULL,
+  `Aula_Agendada_id_Aula_Agendada` INT NOT NULL,
+  PRIMARY KEY (`id_Filho`, `Responsável_id_Responsavel`, `Aula_Agendada_id_Aula_Agendada`),
+  CONSTRAINT `fk_Filho_Aula_Agendada1`
+    FOREIGN KEY (`Aula_Agendada_id_Aula_Agendada`)
+    REFERENCES `saep_db`.`aula_agendada` (`id_Aula_Agendada`),
+  CONSTRAINT `fk_Filho_Responsável`
+    FOREIGN KEY (`Responsável_id_Responsavel`)
+    REFERENCES `saep_db`.`responsável` (`id_Responsavel`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+CREATE INDEX `fk_Filho_Responsável_idx` ON `saep_db`.`filho` (`Responsável_id_Responsavel` ASC) VISIBLE;
+
+CREATE INDEX `fk_Filho_Aula_Agendada1_idx` ON `saep_db`.`filho` (`Aula_Agendada_id_Aula_Agendada` ASC) VISIBLE;
+-- -----------------------------------------------------
+-- Table `mydb`.`usuário`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `saep_db`.`usuário` (
+  `id_Usuario` INT NOT NULL,
+  `Nome` VARCHAR(100) NOT NULL,
+  `Login` VARCHAR(50) NOT NULL,
+  `Senha` VARCHAR(64) NOT NULL,
+  PRIMARY KEY (`id_Usuario`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+CREATE UNIQUE INDEX `Login_UNIQUE` ON `saep_db`.`usuário` (`Login` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `Senha_UNIQUE` ON `saep_db`.`usuário` (`Senha` ASC) VISIBLE;
+-- -----------------------------------------------------
+-- Table `saep_db`.`aula_agendada`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `saep_db`.`aula_agendada` (
+  `id_Aula_Agendada` INT NOT NULL,
+  `Filho` VARCHAR(100) NOT NULL,
+  `Nome_Professor` VARCHAR(100) NOT NULL,
+  `Data` DATETIME NOT NULL,
+  `Filho_id_Filho` INT NOT NULL,
+  `Filho_Responsável_id_Responsavel` INT NOT NULL,
+  PRIMARY KEY (`id_Aula_Agendada`, `Filho_id_Filho`, `Filho_Responsável_id_Responsavel`),
+  CONSTRAINT `fk_Aula_Agendada_Filho1`
+    FOREIGN KEY (`Filho_id_Filho` , `Filho_Responsável_id_Responsavel`)
+    REFERENCES `saep_db`.`filho` (`id_Filho` , `Responsável_id_Responsavel`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+CREATE INDEX `fk_Aula_Agendada_Filho1_idx` ON `saep_db`.`aula_agendada` (`Filho_id_Filho` ASC, `Filho_Responsável_id_Responsavel` ASC) VISIBLE;
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+INSERT INTO responsável (id_Responsavel, Nome, CPF, `e-mail`, Telefone)
+VALUES
+(1, 'Carlos Eduardo', AES_ENCRYPT('111.222.333-44', 'chave123'), 'carlos@gmail.com', '47999991111'),
+(2, 'Mariana Souza', AES_ENCRYPT('222.333.444-55', 'chave123'), 'mariana@gmail.com', '47999992222'),
+(3, 'Roberto Almeida', AES_ENCRYPT('333.444.555-66', 'chave123'), 'roberto@gmail.com', '47999993333');
+
+INSERT INTO usuário (id_Usuario, Nome, Login, Senha)
+VALUES
+(1, 'Administrador', 'admin', SHA2('admin123', 256)),
+(2, 'Atendente', 'atendente', SHA2('atendente123', 256)),
+(3, 'Professor', 'professor', SHA2('professor123', 256));
+
+INSERT INTO filho (
+    id_Filho,
+    Nome,
+    Data_Nascimento,
+    Nivel_Natacao,
+    `Responsável_id_Responsavel`,
+    `Aula_Agendada_id_Aula_Agendada`
+)
+VALUES
+(1, 'Pedro Carlos', '2015-04-12', 'Iniciante', 1, 1),
+(2, 'Ana Mariana', '2016-08-25', 'Intermediário', 2, 2),
+(3, 'Lucas Roberto', '2014-11-03', 'Avançado', 3, 3);
+
+INSERT INTO aula_agendada (
+    id_Aula_Agendada,
+    Filho,
+    Nome_Professor,
+    `Data`,
+    Filho_id_Filho,
+    Filho_Responsável_id_Responsavel
+)
+VALUES
+(1, 'Pedro Carlos', 'João Martins', '2026-11-20 09:00:00', 1, 1),
+(2, 'Ana Mariana', 'Fernanda Lima', '2026-11-20 10:00:00', 2, 2),
+(3, 'Lucas Roberto', 'Ricardo Alves', '2026-11-20 11:00:00', 3, 3);
