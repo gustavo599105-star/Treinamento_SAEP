@@ -11,7 +11,7 @@ const chave = 'chave123';
 server.post('/login', (req, res) => {
     const { login, senha } = req.body;
 
-    const sql = 'SELECT id, Nome, Login FROM usuarios WHERE Llogin = ? AND senha = SHA2(?, 256)';
+    const sql = 'SELECT id, nome, login FROM usuarios WHERE login = ? AND senha = SHA2(?, 256)';
 
     connection.query(sql, [login, senha], (erro, resultados) => {
         if (erro) {
