@@ -1,10 +1,10 @@
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
-    host:root,
-    user:root,
-    password:root,
-    database:'',
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'saep_db',
     dateStrings:true
 });
 
